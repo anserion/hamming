@@ -1,0 +1,33 @@
+generate Hamming code for some bits
+s=11111111
+n=8
+m=4
+control bits:
+1: 1
+2: 1
+4: 0
+8: 0
+==============================
+Hamming code
+==============================
+length of Hamming code: 12
+111011101111
+
+==============================
+checking (doing 1 error)
+==============================
+111011101110
+special error position=12
+
+recalculate control bits:
+1: 0
+2: 0
+4: 1
+8: 1
+Hamming error position = 1100 = 12
+==============================
+correct Hamming code:
+111011101111
+==============================
+unpacked s:
+11111111
