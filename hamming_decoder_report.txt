@@ -1,0 +1,32 @@
+Decode Hamming code
+c=110100000011111010101011111010110100001110110111
+block_size=12
+===========================
+add 0 zero bits to S
+110100000011 111010101011 111010110100 001110110111 
+===========================
+Number of control bits: m=4
+
+block  1: c_in=110100000011   c=110100000011    s=00000011
+control bits: c1=0 c2=0 c4=0 c8=0 
+Hamming error position = 0
+
+block  2: c_in=111010101011   c=111010101010    s=11011010
+control bits: c1=0 c2=0 c4=1 c8=1 
+Hamming error position = 12
+
+block  3: c_in=111010110100   c=111010110100    s=11010100
+control bits: c1=0 c2=0 c4=0 c8=0 
+Hamming error position = 0
+
+block  4: c_in=001110110111   c=001110110111    s=11010111
+control bits: c1=0 c2=0 c4=0 c8=0 
+Hamming error position = 0
+
+==============================
+Decode message:
+00000011110110101101010011010111
+==============================
+Original message:
+length of binary code block: 8
+1110110101101010011010111

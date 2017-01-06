@@ -1,0 +1,26 @@
+generate Hamming code for some bits
+s=1110110101101010011010111
+block_size=8
+===========================
+add 5 zero bits and 01 to S
+00000011 11011010 11010100 11010111 
+===========================
+Number of control bits: m=4
+
+block  1: s=00000011    c=110100000011
+control bits: c1=1 c2=1 c4=1 c8=0 
+
+block  2: s=11011010    c=111010101010
+control bits: c1=1 c2=1 c4=0 c8=0 
+
+block  3: s=11010100    c=111010110100
+control bits: c1=1 c2=1 c4=0 c8=1 
+
+block  4: s=11010111    c=001110110111
+control bits: c1=0 c2=0 c4=1 c8=1 
+
+==============================
+Hamming code
+==============================
+length of Hamming code block: 12
+110100000011111010101010111010110100001110110111
