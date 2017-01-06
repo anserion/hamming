@@ -13,27 +13,48 @@
 //limitations under the License.
 
 //учебный шаблон создания помехоустойчивого кода Хэмминга
-//для произвольного двоичного кода
+//для произвольного двоичного кода (с нарезкой на блоки)
  
 program hamming;
 const max_m=16; //максимальное число контрольных битов (шаблон учебный)
 var
    s:string; //входное сообщение в двоичном коде
+   ss:string; //блок из сообщения
+   n:integer; //длина блока входного сообщения
    c:string; //результат (двоичный код Хэмминга)
-   b:array[1..max_m]of integer; //контрольные биты
-   n:integer; //длина входного сообщения
-   m:integer; //реальное количество контрольных битов
+   cc:string; //блок результата
+   m:integer; //количество контрольных битов для блока сообщения
+   b:array[1..max_m]of integer; //контрольные биты   
    w:integer; //вектор ошибки (номер ошибочного бита)
-   i,j,k:integer; //вспомогательные переменные
+   i,j,k,r,blocks_num,align_s:integer; //вспомогательные переменные
+   cc_tmp,cc_tmp2:string; //вспомогательная переменная
    
 begin
    //ввод сообщения
    writeln('generate Hamming code for some bits');
    write('s='); readln(s);
-   //расчет длины сообщения
-   n:=length(s); writeln('n=',n);
+   write('block_size='); readln(n);
    
-   //определяем количество контрольных битов
+   //выравнивание входного бинарного кода путем добавления
+   //границы "01" и нулей для выравнивания слева
+   s:='01'+s;
+   align_s:=n-(length(s) mod n);
+   if align_s=n then align_s:=0;
+   for i:=1 to align_s do s:='0'+s;
+   blocks_num:=length(s) div n;
+   
+   //печать выровненного входного бинарного кода
+   writeln('===========================');
+   writeln('add ',align_s,' zero bits and 01 to S');
+   for i:=1 to length(s) do
+   begin
+      write(s[i]);
+      if (i mod n)=0 then write(' ');
+   end;
+   writeln;
+   writeln('===========================');
+
+   //определяем количество контрольных битов в блоке
    k:=1; m:=0;
    while k<n+m do
    begin
@@ -41,98 +62,130 @@ begin
       m:=m+1;
    end;
    //вывод количества контрольных битов
-   writeln('m=',m);
+   writeln('Number of control bits: m=',m);
+   writeln;
+   //увеличиваем размер блока на m бит
+   n:=n+m;
    
-   //создаем заготовку для кода Хэмминга в строковой переменной
-   c:=''; for i:=1 to n+m do c:=c+'0';
-   //помечаем символом 'b' места для контрольных битов
-   k:=1; for i:=1 to m do begin c[k]:='b'; k:=k*2; end;
-   //в "свободные" биты заготовки заносим биты входного сообщения
-   j:=1;
-   for i:=1 to n+m do
-      if c[i]<>'b' then begin c[i]:=s[j]; j:=j+1; end;
-   //заменяем метки контрольных битов нулями
-   k:=1; for i:=1 to m do begin c[k]:='0'; k:=k*2; end;
-   
-   //вычисляем контрольные биты
-   k:=1;
-   for i:=1 to m do
+   c:='';
+   for i:=1 to blocks_num do
    begin
-      b[i]:=0;
-      for j:=1 to n+m do
-         if (j and k)=k then
-            if c[j]='1' then 
-               if b[i]=0 then b[i]:=1 else b[i]:=0;
-      k:=k*2;
-   end;
-   //печатаем контрольные биты
-   writeln('control bits:');
-   k:=1; for i:=1 to m do begin writeln(k,': ',b[i]); k:=k*2; end;
-   
-   //заносим контрольные биты в соответствующие места кода Хэмминга
-   k:=1;
-   for i:=1 to m do
-   begin
-      if b[i]=0 then c[k]:='0' else c[k]:='1';
-      k:=k*2;
-   end;
+      //вырезаем n бит из входного сообщения (формируем блок)
+      ss:='';
+      for j:=1 to n-m do ss:=ss+s[(i-1)*(n-m)+j];
 
+      //создаем заготовку для кода Хэмминга в строковой переменной
+      cc:=''; for j:=1 to n do cc:=cc+'0';
+      //помечаем символом 'b' места для контрольных битов
+      k:=1; for j:=1 to m do begin cc[k]:='b'; k:=k*2; end;
+      //в "свободные" биты заготовки заносим биты входного сообщения
+      k:=1;
+      for j:=1 to n do
+         if cc[j]<>'b' then begin cc[j]:=ss[k]; k:=k+1; end;
+      //заменяем метки контрольных битов нулями
+      k:=1; for j:=1 to m do begin cc[k]:='0'; k:=k*2; end;
+
+      //вычисляем контрольные биты
+      k:=1;
+      for r:=1 to m do
+      begin
+         b[r]:=0;
+         for j:=1 to n do
+            if (j and k)=k then
+               if cc[j]='1' then 
+                  if b[r]=0 then b[r]:=1 else b[r]:=0;
+         k:=k*2;
+      end;
+      //заносим контрольные биты в соответствующие места кода Хэмминга
+      k:=1;
+      for j:=1 to m do
+      begin
+         if b[j]=0 then cc[k]:='0' else cc[k]:='1';
+         k:=k*2;
+      end;
+      
+      //наращивание окончательного ответа
+      c:=c+cc;
+      //печать промежуточного результата
+      writeln('block',i:3,': s=',ss,'    c=',cc);
+      //печатаем контрольные биты
+      write('control bits: ');
+      k:=1; for j:=1 to m do begin write('c',k,'=',b[j],' '); k:=k*2; end;
+      writeln; writeln;
+   end;
+   
    writeln('==============================');
    writeln('Hamming code');
    writeln('==============================');
-   writeln('length of Hamming code: ',n+m);
+   writeln('length of Hamming code block: ',n);
    writeln(c);
    writeln;
 
    //проверка работоспособности кода Хэмминга
-   writeln('==============================');
-   writeln('checking (doing 1 error)');
-   writeln('==============================');
-   //инвертируем случайным образом выбранный бит кода Хэмминга
    randomize;
-   j:=random(n+m)+1; 
-   if c[j]='0' then c[j]:='1' else c[j]:='0';
-   //печатаем код Хэмминга с внесенной в него ошибкой
-   writeln(c);
-   writeln('special error position=',j);
-   
-   //пересчитываем контрольные биты кода Хэмминга
-   k:=1;
-   for i:=1 to m do
+   writeln('=======================================');
+   writeln('checking (doing 1 error in each block)');
+   writeln('=======================================');
+   //пересчитываем размер блока (для кода Хэмминга)
+   s:='';
+   for i:=1 to blocks_num do
    begin
-      b[i]:=0;
-      for j:=1 to n+m do
-         if (j and k)=k then
-            if c[j]='1' then 
-               if b[i]=0 then b[i]:=1 else b[i]:=0;
-      k:=k*2;
-   end;
-   //вычисляем вектор ошибки (номер неправильного бита)
-   w:=0; for i:=m downto 1 do w:=w*2+b[i];
+      //вырезаем n бит из кода Хэмминга (формируем блок)
+      cc:='';
+      for j:=1 to n do cc:=cc+c[(i-1)*n+j];
+      //инвертируем случайным образом выбранный бит блока кода Хэмминга
+      j:=random(n)+1; 
+      if cc[j]='0' then cc[j]:='1' else cc[j]:='0';
+      //печатаем номер позиции ошибочного бита
+      writeln('special error position=',j);
 
-   //печатаем контрольные биты
-   writeln;
-   writeln('recalculate control bits:');
-   k:=1; for i:=1 to m do begin writeln(k,': ',b[i]); k:=k*2; end;
-   //печатаем номер ошибочного бита
-   write('Hamming error position = ');
-   for i:=m downto 1 do write(b[i]);
-   writeln(' = ',w);
-   
-   //инвертитуем неправильный бит
-   //если w=0, то ошибки не было
-   if w<>0 then if c[w]='1' then c[w]:='0' else c[w]:='1';
-   //печатаем исправленный код Хэмминга
+      //пересчитываем контрольные биты кода Хэмминга
+      k:=1;
+      for r:=1 to m do
+      begin
+         b[r]:=0;
+         for j:=1 to n do
+            if (j and k)=k then
+               if cc[j]='1' then 
+                  if b[r]=0 then b[r]:=1 else b[r]:=0;
+         k:=k*2;
+      end;
+      //вычисляем вектор ошибки (номер неправильного бита в блоке)
+      w:=0; for j:=m downto 1 do w:=w*2+b[j];
+      //инвертитуем неправильный бит
+      //если w=0, то ошибки не было
+      cc_tmp:=cc;
+      if w<>0 then if cc[w]='1' then cc[w]:='0' else cc[w]:='1';
+      //извлекаем из блока кода Хэмминга блок сообщения
+      cc_tmp2:=cc;
+      k:=1; for j:=1 to m do begin cc[k]:='b'; k:=k*2; end;
+      ss:=''; for j:=1 to n do if cc[j]<>'b' then ss:=ss+cc[j];
+      cc:=cc_tmp2;
+      
+      //наращивание окончательного ответа
+      s:=s+ss;
+      //печать промежуточного результата
+      writeln('block',i:3,': c_err=',cc_tmp,'   c=',cc,'    s=',ss);
+      //печатаем контрольные биты
+      write('control bits: ');
+      k:=1; for j:=1 to m do begin write('c',k,'=',b[j],' '); k:=k*2; end;
+      writeln;
+      writeln('Hamming error position = ',w);
+      writeln;
+   end;
+
+   //печатаем исправленное сообщение
    writeln('==============================');
-   writeln('correct Hamming code:');
-   writeln(c);
-   
-   //извлекаем из кода Хэмминга сообщение
-   k:=1; for i:=1 to m do begin c[k]:='b'; k:=k*2; end;
-   s:=''; for i:=1 to n+m do if c[i]<>'b' then s:=s+c[i];
-   
+   writeln('Decode message:');
+   writeln(s);
+
+   //"отрезаем" нули и одну единицу слева от декдированного ответа
+   //для извлечения исходного сообщения
+   j:=1; while s[j]='0' do j:=j+1;
+   j:=j+1; ss:=s; s:='';
+   for i:=j to length(ss) do s:=s+ss[i];   
    //печатаем извлеченное из кода Хэмминга сообщение
    writeln('==============================');
-   writeln('unpacked s:');
+   writeln('Original message:');
    writeln(s);
 end.

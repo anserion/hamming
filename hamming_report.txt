@@ -1,33 +1,56 @@
 generate Hamming code for some bits
-s=11111111
-n=8
-m=4
-control bits:
-1: 1
-2: 1
-4: 0
-8: 0
+s=00111011101111001101011011
+block_size=8
+===========================
+add 4 zero bits and 01 to S
+00000100 11101110 11110011 01011011 
+===========================
+Number of control bits: m=4
+
+block  1: s=00000100    c=010000010100
+control bits: c1=0 c2=1 c4=0 c8=1 
+
+block  2: s=11101110    c=001011011110
+control bits: c1=0 c2=0 c4=0 c8=1 
+
+block  3: s=11110011    c=001011100011
+control bits: c1=0 c2=0 c4=0 c8=0 
+
+block  4: s=01011011    c=000110111011
+control bits: c1=0 c2=0 c4=1 c8=1 
+
 ==============================
 Hamming code
 ==============================
-length of Hamming code: 12
-111011101111
+length of Hamming code block: 12
+010000010100001011011110001011100011000110111011
 
-==============================
-checking (doing 1 error)
-==============================
-111011101110
+=======================================
+checking (doing 1 error in each block)
+=======================================
+special error position=3
+block  1: c_err=011000010100   c=010000010100    s=00000100
+control bits: c1=1 c2=1 c4=0 c8=0 
+Hamming error position = 3
+
+special error position=6
+block  2: c_err=001010011110   c=001011011110    s=11101110
+control bits: c1=0 c2=1 c4=1 c8=0 
+Hamming error position = 6
+
+special error position=3
+block  3: c_err=000011100011   c=001011100011    s=11110011
+control bits: c1=1 c2=1 c4=0 c8=0 
+Hamming error position = 3
+
 special error position=12
+block  4: c_err=000110111010   c=000110111011    s=01011011
+control bits: c1=0 c2=0 c4=1 c8=1 
+Hamming error position = 12
 
-recalculate control bits:
-1: 0
-2: 0
-4: 1
-8: 1
-Hamming error position = 1100 = 12
 ==============================
-correct Hamming code:
-111011101111
+Decode message:
+00000100111011101111001101011011
 ==============================
-unpacked s:
-11111111
+Original message:
+00111011101111001101011011
